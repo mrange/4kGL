@@ -26,11 +26,25 @@ HWND g_hWnd;
 HDC g_hDC;
 HGLRC g_hGLRC;
 
-GLfloat g_vertex_buffer_data[] =
+#define VERTEX_COUNT 6
+
+GLfloat g_texpos[] =
+{
+    0.0, 1.0,
+    1.0, 1.0,
+    1.0, 0.0,
+
+    0.0, 0.0,
+    0.0, 1.0,
+    1.0, 0.0,
+};
+
+GLfloat g_vertex[] =
 {
    -1.0f, -1.0f, 0.0f,
     1.0f, -1.0f, 0.0f,
     1.0f,  1.0f, 0.0f,
+
    -1.0f,  1.0f, 0.0f,
    -1.0f, -1.0f, 0.0f,
     1.0f,  1.0f, 0.0f,
@@ -202,10 +216,10 @@ Update ()
 
     glColor4f(1.0, 1.0, 1.0, 1.0);
 
-    int vertexCount = sizeof(g_vertex_buffer_data)/sizeof(g_vertex_buffer_data[0]);
-    for(int i = 0; i < vertexCount; ++i)
+    for(int i = 0; i < VERTEX_COUNT; ++i)
     {
-        glVertex3fv(g_vertex_buffer_data + i*3);
+        glTexCoord2fv(g_texpos + i*2);
+        glVertex3fv(g_vertex + i*3);
     }
 
     glEnd();
