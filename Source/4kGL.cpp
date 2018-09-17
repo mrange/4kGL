@@ -1,9 +1,7 @@
-
 /*
 4kGL.
 A minimal starting point for 4k OpenGL demo/game programming.
 */
-
 
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
@@ -12,19 +10,55 @@ A minimal starting point for 4k OpenGL demo/game programming.
 #include <mmsystem.h>
 #include <GL/gl.h>
 
-#include "4kGL.h"
+#define WINDOW_TITLE TEXT("4kGL")
+#define WINDOW_WIDTH 1600
+#define WINDOW_HEIGHT 1080
+
+// Minimum amount of milliseconds for each update cycle:
+
+#define STEP_RATE 13
+
+// Globals:
+
+HINSTANCE g_hInstance;
+HWND g_hWnd;
+
+HDC g_hDC;
+HGLRC g_hGLRC;
+
+GLfloat g_vertex_buffer_data[] =
+{
+   -1.0f, -1.0f, 0.0f,
+    1.0f, -1.0f, 0.0f,
+    1.0f,  1.0f, 0.0f,
+   -1.0f,  1.0f, 0.0f,
+   -1.0f, -1.0f, 0.0f,
+    1.0f,  1.0f, 0.0f,
+};
+
+// Function prototypes:
+
+LRESULT CALLBACK WndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+bool Initialize ();
+void Shutdown (UINT uExitCode);
+void Update ();
+void Loop ();
+void ResizeClientWindow (HWND hWnd, UINT uWidth, UINT uHeight);
+void EntryPoint ();
 
 
 #if defined(_MSC_VER)
     extern "C" int _fltused = 0;
 #endif
 
-
 // Message handler:
 
 LRESULT CALLBACK
-WndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
+WndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
         case WM_CLOSE:
             PostQuitMessage(0);
             return 0;
@@ -37,7 +71,8 @@ WndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 // Initialization and shutdown:
 
 bool
-Initialize () {
+Initialize ()
+{
 
     // no WinMain so get the module handle:
     g_hInstance = GetModuleHandle(NULL);
@@ -82,7 +117,8 @@ Initialize () {
     if (g_hDC == NULL)
         return false;
 
-    PIXELFORMATDESCRIPTOR pfd = {
+    PIXELFORMATDESCRIPTOR pfd =
+    {
         sizeof(PIXELFORMATDESCRIPTOR),
         1,                             // version number
         PFD_DRAW_TO_WINDOW |           // support window
@@ -117,15 +153,19 @@ Initialize () {
     if (wglMakeCurrent(g_hDC, g_hGLRC) == FALSE)
         return false;
 
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
     return true;
 }
 
 
 void
-Shutdown (UINT uExitCode) {
+Shutdown (UINT uExitCode)
+{
 
     // release OpenGL context:
-    if (g_hGLRC != NULL) {
+    if (g_hGLRC != NULL)
+    {
         wglMakeCurrent(NULL, NULL);
         wglDeleteContext(g_hGLRC);
     }
@@ -149,17 +189,33 @@ Shutdown (UINT uExitCode) {
  // Update step and main loop:
 
 void
-Update () {
+Update ()
+{
 
     // just paint the whole back buffer in blue:
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.392f, 0.584f, 0.929f, 0.0f);
 
+    glLoadIdentity();
+
+    glBegin(GL_TRIANGLES);
+
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+
+    int vertexCount = sizeof(g_vertex_buffer_data)/sizeof(g_vertex_buffer_data[0]);
+    for(int i = 0; i < vertexCount; ++i)
+    {
+        glVertex3fv(g_vertex_buffer_data + i*3);
+    }
+
+    glEnd();
+
 }
 
 
 void
-Loop () {
+Loop ()
+{
     MSG msg;
     bool done = false;
 
@@ -170,11 +226,13 @@ Loop () {
     // for a better game loop see:
     // <http://gafferongames.com/game-physics/fix-your-timestep>
 
-    while (!done) {
+    while (!done)
+    {
         DWORD dwStart = timeGetTime();
 
         // poll windows events:
-        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != 0)
+        {
             if (msg.message == WM_QUIT)
                 done = true;
             TranslateMessage(&msg);
@@ -187,7 +245,8 @@ Loop () {
 
         // sleep until next step:
         DWORD dwDelta = timeGetTime() - dwStart;
-        if (dwDelta < STEP_RATE) {
+        if (dwDelta < STEP_RATE)
+        {
             Sleep(STEP_RATE - dwDelta);
         }
     }
@@ -197,7 +256,8 @@ Loop () {
 // A helper to resize the window with respect to the client area:
 
 void
-ResizeClientWindow (HWND hWnd, UINT uWidth, UINT uHeight) {
+ResizeClientWindow (HWND hWnd, UINT uWidth, UINT uHeight)
+{
     RECT rcClient, rcWindow;
 
     GetClientRect(hWnd, &rcClient);
@@ -215,8 +275,10 @@ ResizeClientWindow (HWND hWnd, UINT uWidth, UINT uHeight) {
 // Entry point:
 
 void
-EntryPoint () {
-    if (!Initialize()) {
+EntryPoint ()
+{
+    if (!Initialize())
+    {
         MessageBox(NULL, "Initialization failed.", "Error", MB_OK | MB_ICONERROR);
         Shutdown(1);
     }
